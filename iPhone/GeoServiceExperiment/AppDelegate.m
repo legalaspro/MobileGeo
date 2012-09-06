@@ -12,6 +12,16 @@
 
 @synthesize window = _window;
 
+- (id)init
+{
+	if ((self = [super init]))
+	{
+		// Setup logging framework
+		[DDLog addLogger:[DDTTYLogger sharedInstance]];
+	}
+	return self;
+}
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.

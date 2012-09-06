@@ -5,23 +5,30 @@
 //  Created by Dmitry Manayev on 30.08.12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
-
 #import "ViewController.h"
+
+static const int ddLogLevel = LOG_LEVEL_INFO;
 
 #ifndef NSDateTimeAgoLocalizedStrings
 #define NSDateTimeAgoLocalizedStrings(key) \
 NSLocalizedStringFromTable(key, @"NSDateTimeAgo", nil)
 #endif
 
-#define URL @"https://api.vk.com/method/friends.get?fields=first_name,last_name"
-//Put here access token or this will not work
-#define ACCESS_TOKEN @""
+#define HOST @"please add port"
+#define PORT 1111
+
+
+#define BEAT_MESSAGE 123456789
+#define ERROR_MESSAGE 987654321
+
 
 @interface ViewController ()
 {
     CLLocationManager *_locationManager;
     CLLocation *_userLocation;
-    NSTimer *_timer;
+    NSTimer *_beatTimer;
+    NSTimer *_positionTimer;
+    BOOL startedPosition;
     int timeInterval;
     int requestCount;
 }
@@ -37,12 +44,16 @@ NSLocalizedStringFromTable(key, @"NSDateTimeAgo", nil)
 @synthesize endButton;
 @synthesize startTimeLabel;
 @synthesize endTimeLabel;
+@synthesize logsTextView;
+
+
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     
-    _timer = [[NSTimer alloc] init];
+    _beatTimer = [[NSTimer alloc] init];
+    _positionTimer = [[NSTimer alloc] init];
     endButton.enabled = NO;
     timeInterval =(int)(timePeriodSlider.value + 0.5f);
     self.timePeriodLabel.text = [self timeFormat:timeInterval];
@@ -52,6 +63,12 @@ NSLocalizedStringFromTable(key, @"NSDateTimeAgo", nil)
     _locationManager.delegate = self;
     _locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation;
     [_locationManager startUpdatingLocation];
+    
+    asyncSocket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
+    NSError *err = nil;
+    if (![asyncSocket connectToHost:HOST onPort:PORT error:&err]) {
+        [self textViewLog:[NSString stringWithFormat: @"Can't connect to host %@ on port %d",HOST,PORT]];
+    }
 	// Do any additional setup after loading the view, typically from a nib.
 }
 
@@ -63,69 +80,20 @@ NSLocalizedStringFromTable(key, @"NSDateTimeAgo", nil)
     [self setLatitudeLabel:nil];
     [self setLongitudeLabel:nil];
     _locationManager = nil;
-    _timer = nil;
+    _beatTimer = nil;
+    _positionTimer = nil;
     [self setStartButton:nil];
     [self setEndButton:nil];
     [self setStartTimeLabel:nil];
     [self setEndTimeLabel:nil];
+    [self setLogsTextView:nil];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
 }  
 
-- (IBAction)timePeriodChanged:(id)sender {
-    UISlider *slider = (UISlider *) sender;
-    timeInterval =(int)(slider.value + 0.5f);
-    self.timePeriodLabel.text = [self timeFormat:timeInterval];
-}
 
-- (IBAction)startButtonClick:(id)sender {
-    endButton.enabled = YES;
-    startButton.enabled = NO;
-    timePeriodSlider.enabled = NO;
-    requestCount = 0;
-    requestCountLabel.text = [[NSNumber numberWithInt:requestCount] stringValue];
-    [_timer invalidate];
-    
-    startTimeLabel.text = [self timeNow];
-    endTimeLabel.text = nil;
-    
-    _timer = [NSTimer scheduledTimerWithTimeInterval:timeInterval target:self selector:@selector(sendRequest) userInfo:nil repeats:YES];
-}
-
-- (IBAction)endButtonClick:(id)sender {
-    [_timer invalidate];
-    endButton.enabled = NO;
-    startButton.enabled = YES;
-    timePeriodSlider.enabled = YES;
-    
-    endTimeLabel.text = [self timeNow];
-}
+#pragma mark - private methods
               
--(void) sendRequest {
-    requestCount += 1;
-    requestCountLabel.text = [[NSNumber numberWithInt:requestCount] stringValue];
-    
-    NSString *query = [NSString stringWithFormat:@"%@&access_token=%@", URL, ACCESS_TOKEN];
-    query = [query stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    // NSLog(@"[%@ %@] sent %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), query);
-    NSData *jsonData = [[NSString stringWithContentsOfURL:[NSURL URLWithString:query] encoding:NSUTF8StringEncoding error:nil] dataUsingEncoding:NSUTF8StringEncoding];
-    NSError *error = nil;
-    NSDictionary *results = jsonData ? [NSJSONSerialization JSONObjectWithData:jsonData options:NSJSONReadingMutableContainers|NSJSONReadingMutableLeaves error:&error] : nil;
-    
-//    NSURLRequest *request = [[NSURLRequest requestWithURL:url] retain];
-//    NSURLResponse *response = nil;
-//    NSError* error = nil;
-//    receivedData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-    if (error) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error"
-                                                        message: error.description
-                                                       delegate:nil
-                                              cancelButtonTitle:@"OK"
-                                              otherButtonTitles:nil];
-        [alert show];
-    }
-}
-
 -(NSString *)timeFormat:(int) seconds {
     
     int minutes = seconds/60;
@@ -144,6 +112,125 @@ NSLocalizedStringFromTable(key, @"NSDateTimeAgo", nil)
     NSDateFormatter * date_format = [[NSDateFormatter alloc] init];
     [date_format setDateFormat: @"yyyy-MM-dd HH:mm:ss"];
     return [date_format stringFromDate: today];
+}
+
+-(NSString *)getFormattedLongitude
+{
+    double longitude = _userLocation.coordinate.longitude*100;
+    if (longitude < 0) {
+        return [NSString stringWithFormat:@"E%0.4f",(-1)*longitude];
+    }
+    return [NSString stringWithFormat:@"W%0.4f",longitude];
+}
+
+-(NSString *)getFormattedLatitude
+{
+    double latitude = _userLocation.coordinate.latitude * 100;
+    if (latitude < 0) {
+        return [NSString stringWithFormat:@"S%0.4f",(-1)*latitude];
+    }
+    return [NSString stringWithFormat:@"N%0.4f",latitude];
+}
+
+-(NSString *)getUTCFormateDate:(NSString *) formate
+{
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    NSTimeZone *timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
+    [dateFormatter setTimeZone:timeZone];
+    [dateFormatter setDateFormat:formate];
+    NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+    return dateString;
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// It's almost like NSLog, but directed to a UITextView control.
+//
+// usage example:  [self textViewLog:@"%@", myVar];
+//
+- (void)textViewLog:(NSString *)message
+{
+    NSString *log_msg = [NSString stringWithFormat:@"%@: %@",[self timeNow],message];
+    
+    self.logsTextView.text = [NSString stringWithFormat:@"%@ %@\n", self.logsTextView.text, log_msg];
+    
+    // Support auto-scroll.
+    NSRange range = NSMakeRange(self.logsTextView.text.length - 1, 1);
+    [self.logsTextView scrollRangeToVisible:range];
+}
+
+#pragma mark - Socket
+
+-(void)socket:(GCDAsyncSocket *)sock didConnectToHost:(NSString *)host port:(uint16_t)port
+{
+    DDLogInfo(@"socket:%p didConnectToHost:%@ port:%hu", sock, host, port);
+    [self textViewLog:[NSString stringWithFormat: @"Connected to host %@ on port %d",host,port]];
+}
+
+-(void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag
+{
+    DDLogInfo(@"socket:%p didReadData:withTag:%ld", sock, tag);
+    NSString *response = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    [self textViewLog:response];
+//    NSRange rangeOfDash = [response rangeOfString:@"GOLFINFO"];
+//    if (rangeOfDash.location != NSNotFound) {
+//        [self sendErrorMessage];
+    if (!startedPosition) {
+        _positionTimer = [NSTimer scheduledTimerWithTimeInterval:timeInterval target:self selector:@selector(sendPositionMessage) userInfo:nil repeats:YES];
+        startedPosition = YES;
+    }
+}
+
+-(void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err
+{
+    DDLogInfo(@"socketDidDisconnect:%p withError: %@", sock, err);
+    [self textViewLog:[NSString stringWithFormat: @"Disconnected"]];
+}
+
+-(void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag
+{
+//    DDLogInfo(@"socket:%p didWriteDataWithTag:%ld", sock, tag);
+}
+
+#pragma mark - Actions
+
+- (IBAction)timePeriodChanged:(id)sender {
+    UISlider *slider = (UISlider *) sender;
+    timeInterval =(int)(slider.value + 0.5f);
+    self.timePeriodLabel.text = [self timeFormat:timeInterval];
+}
+
+- (IBAction)startButtonClick:(id)sender {
+    endButton.enabled = YES;
+    startButton.enabled = NO;
+    timePeriodSlider.enabled = NO;
+    requestCount = 0;
+    requestCountLabel.text = [[NSNumber numberWithInt:requestCount] stringValue];
+    [_beatTimer invalidate];
+    [_positionTimer invalidate];
+    
+    startTimeLabel.text = [self timeNow];
+    endTimeLabel.text = nil;
+    
+    if ([asyncSocket isDisconnected]) {
+        if (![asyncSocket connectToHost:HOST onPort:PORT error:nil]) {
+            [self textViewLog:[NSString stringWithFormat: @"Can't connect to host %@ on port %d",HOST,PORT]];
+        }
+    }
+    
+    [self sendBeatMessage];
+    _beatTimer = [NSTimer scheduledTimerWithTimeInterval:30*60 target:self selector:@selector(sendBeatMessage) userInfo:nil repeats:YES];
+}
+
+- (IBAction)endButtonClick:(id)sender {
+    [_beatTimer invalidate];
+    [_positionTimer invalidate];
+    endButton.enabled = NO;
+    startButton.enabled = YES;
+    timePeriodSlider.enabled = YES;
+    
+    startedPosition = NO;
+    endTimeLabel.text = [self timeNow];
+    logsTextView.text = nil;
 }
 
 #pragma mark - Location Manager
@@ -166,6 +253,52 @@ NSLocalizedStringFromTable(key, @"NSDateTimeAgo", nil)
                                           otherButtonTitles:nil];
     [alert show];
 }
+    
+#pragma mark - Socket Messages
 
+-(void) sendBeatMessage {
+    requestCount += 1;
+    requestCountLabel.text = [[NSNumber numberWithInt:requestCount] stringValue];
+    
+    NSData *data = [@"beat" dataUsingEncoding:NSUTF8StringEncoding];
+    
+    [asyncSocket writeData: data withTimeout:-1 tag:BEAT_MESSAGE];
+    [asyncSocket readDataWithTimeout:10 tag:BEAT_MESSAGE];
+}
 
+-(void)sendPositionMessage
+{
+    requestCount += 1;
+    requestCountLabel.text = [[NSNumber numberWithInt:requestCount] stringValue];
+    
+    NSMutableString *message = [[NSMutableString alloc] initWithString:@"ideal"];
+    //add altitude
+    [message appendFormat:@"%04.1f,",_userLocation.altitude];
+    //add latitude
+    [message appendFormat:@"%@,",[self getFormattedLatitude]];
+    //add longitude
+    [message appendFormat:@"%@,",[self getFormattedLongitude]];
+    //add speed
+    [message appendFormat:@"%0.1f,",_userLocation.speed];
+    //add direction
+    [message appendFormat:@"%0.1f,",_userLocation.course];
+    
+    NSData *data = [message dataUsingEncoding:NSUTF8StringEncoding];
+//    DDLogInfo(message);
+    
+    [asyncSocket writeData: data withTimeout:-1 tag:requestCount];
+    //[asyncSocket readDataWithTimeout:10 tag:requestCount];
+}
+
+-(void)sendErrorMessage
+{
+    requestCount += 1;
+    requestCountLabel.text = [[NSNumber numberWithInt:requestCount] stringValue];
+    
+    NSData *data = [@"EROROR#" dataUsingEncoding:NSUTF8StringEncoding];
+    
+    [asyncSocket writeData: data withTimeout:-1 tag:ERROR_MESSAGE];
+    [asyncSocket readDataWithTimeout:30 tag:ERROR_MESSAGE];
+}
+    
 @end

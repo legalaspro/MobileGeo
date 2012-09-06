@@ -16,6 +16,11 @@
 		0F8D235815EF615F0067D87B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F8D235715EF615F0067D87B /* AppDelegate.m */; };
 		0F8D235B15EF615F0067D87B /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0F8D235915EF615F0067D87B /* MainStoryboard.storyboard */; };
 		0F8D235E15EF615F0067D87B /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F8D235D15EF615F0067D87B /* ViewController.m */; };
+		0F9CB05615F5F86300098CF9 /* GCDAsyncSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F9CB05515F5F86300098CF9 /* GCDAsyncSocket.m */; };
+		0F9CB05C15F60E9100098CF9 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F9CB05B15F60E9100098CF9 /* Security.framework */; };
+		0F9CB05E15F60E9800098CF9 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F9CB05D15F60E9800098CF9 /* CFNetwork.framework */; };
+		0F9CB08015F620D000098CF9 /* DDLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F9CB07415F620D000098CF9 /* DDLog.m */; };
+		0F9CB08115F620D000098CF9 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F9CB07615F620D000098CF9 /* DDTTYLogger.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +38,14 @@
 		0F8D235A15EF615F0067D87B /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard.storyboard; sourceTree = "<group>"; };
 		0F8D235C15EF615F0067D87B /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		0F8D235D15EF615F0067D87B /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		0F9CB05415F5F86300098CF9 /* GCDAsyncSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDAsyncSocket.h; sourceTree = "<group>"; };
+		0F9CB05515F5F86300098CF9 /* GCDAsyncSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDAsyncSocket.m; sourceTree = "<group>"; };
+		0F9CB05B15F60E9100098CF9 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		0F9CB05D15F60E9800098CF9 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
+		0F9CB07315F620D000098CF9 /* DDLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLog.h; sourceTree = "<group>"; };
+		0F9CB07415F620D000098CF9 /* DDLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDLog.m; sourceTree = "<group>"; };
+		0F9CB07515F620D000098CF9 /* DDTTYLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDTTYLogger.h; sourceTree = "<group>"; };
+		0F9CB07615F620D000098CF9 /* DDTTYLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDTTYLogger.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -40,6 +53,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0F9CB05E15F60E9800098CF9 /* CFNetwork.framework in Frameworks */,
+				0F9CB05C15F60E9100098CF9 /* Security.framework in Frameworks */,
 				0A92079E15EFA15C00ADBBBD /* CoreLocation.framework in Frameworks */,
 				0F8D234815EF615F0067D87B /* UIKit.framework in Frameworks */,
 				0F8D234A15EF615F0067D87B /* Foundation.framework in Frameworks */,
@@ -70,6 +85,8 @@
 		0F8D234615EF615F0067D87B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0F9CB05D15F60E9800098CF9 /* CFNetwork.framework */,
+				0F9CB05B15F60E9100098CF9 /* Security.framework */,
 				0A92079D15EFA15C00ADBBBD /* CoreLocation.framework */,
 				0F8D234715EF615F0067D87B /* UIKit.framework */,
 				0F8D234915EF615F0067D87B /* Foundation.framework */,
@@ -81,6 +98,8 @@
 		0F8D234D15EF615F0067D87B /* GeoServiceExperiment */ = {
 			isa = PBXGroup;
 			children = (
+				0F9CB06B15F620AE00098CF9 /* Logging */,
+				0F9CB05215F5F84500098CF9 /* TCP */,
 				0F8D235615EF615F0067D87B /* AppDelegate.h */,
 				0F8D235715EF615F0067D87B /* AppDelegate.m */,
 				0F8D235915EF615F0067D87B /* MainStoryboard.storyboard */,
@@ -100,6 +119,26 @@
 				0F8D235515EF615F0067D87B /* GeoServiceExperiment-Prefix.pch */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		0F9CB05215F5F84500098CF9 /* TCP */ = {
+			isa = PBXGroup;
+			children = (
+				0F9CB05415F5F86300098CF9 /* GCDAsyncSocket.h */,
+				0F9CB05515F5F86300098CF9 /* GCDAsyncSocket.m */,
+			);
+			name = TCP;
+			sourceTree = "<group>";
+		};
+		0F9CB06B15F620AE00098CF9 /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				0F9CB07315F620D000098CF9 /* DDLog.h */,
+				0F9CB07415F620D000098CF9 /* DDLog.m */,
+				0F9CB07515F620D000098CF9 /* DDTTYLogger.h */,
+				0F9CB07615F620D000098CF9 /* DDTTYLogger.m */,
+			);
+			name = Logging;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -167,6 +206,9 @@
 				0F8D235415EF615F0067D87B /* main.m in Sources */,
 				0F8D235815EF615F0067D87B /* AppDelegate.m in Sources */,
 				0F8D235E15EF615F0067D87B /* ViewController.m in Sources */,
+				0F9CB05615F5F86300098CF9 /* GCDAsyncSocket.m in Sources */,
+				0F9CB08015F620D000098CF9 /* DDLog.m in Sources */,
+				0F9CB08115F620D000098CF9 /* DDTTYLogger.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
