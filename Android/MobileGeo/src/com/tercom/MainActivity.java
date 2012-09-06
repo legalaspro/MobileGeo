@@ -7,11 +7,13 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+<<<<<<< HEAD
 public class MainActivity extends Activity implements LocationListener {
     private Location lastLocation;
     private static final Criteria CRITERIA;
@@ -20,6 +22,16 @@ public class MainActivity extends Activity implements LocationListener {
         CRITERIA = new Criteria();
         CRITERIA.setAccuracy(Criteria.ACCURACY_FINE);
     }
+=======
+import java.io.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
+
+public class MainActivity extends Activity {
+
+    private static final String HOST = ".....";
+    private static final int PORT = 00000;
+>>>>>>> Added simple Tcp request.
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -83,6 +95,30 @@ public class MainActivity extends Activity implements LocationListener {
                 endButton.setEnabled(false);
             }
         });
+        runTcpClient();
+    }
+
+
+    private void runTcpClient() {
+        try {
+            Socket s = new Socket(HOST, PORT);
+            BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+            //send output msg
+            String outMsg = "TCP connecting to " + PORT + System.getProperty("line.separator");
+            out.write(outMsg);
+            out.flush();
+            Log.i("TcpClient", "sent: " + outMsg);
+            //accept server response
+            String inMsg = in.readLine() + System.getProperty("line.separator");
+            Log.i("TcpClient", "received: " + inMsg);
+            //close connection
+            s.close();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
