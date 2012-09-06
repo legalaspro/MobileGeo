@@ -22,20 +22,21 @@ import java.util.TimerTask;
 public class MainActivity extends Activity implements LocationListener {
     private Location lastLocation;
     private static final Criteria CRITERIA;
+    private static final String HOST = ".....";
+    private static final int PORT = 00000;
 
     static {
         CRITERIA = new Criteria();
         CRITERIA.setAccuracy(Criteria.ACCURACY_FINE);
     }
 
-    private static final String HOST = "....";
-    private static final int PORT = 11111;
     private static Socket socket;
     private static Timer beatTimer = new Timer();
     private static Timer positionTimer = new Timer();
-    private TextView log;
-
-
+    private static Boolean positionTimerStarted = false;
+    private static int positionTimeInterval;
+    private static int requestCount;
+    private static TextView logView;
     private static enum MessageType {
         Beat,
         Position,
@@ -56,9 +57,8 @@ public class MainActivity extends Activity implements LocationListener {
         final TextView timeEndLabel = (TextView) findViewById(R.id.timeEndLabel);
         final TextView latitudeLabel = (TextView) findViewById(R.id.latitudeLabel);
         final TextView longitudeLabel = (TextView) findViewById(R.id.longitudeLabel);
-        log = (TextView) findViewById(R.id.logLabel);
+        logView = (TextView) findViewById(R.id.logLabel);
 
-        timeIntervalLabel.setText(getString(R.string. TimeSecIntervalLabelFormat, timeSeekBar.getProgress() + 1));
         requestsCountLabel.setText(getString(R.string.RequestsCountLabelDefault));
         timeStartLabel.setText(getString(R.string.TimeStartLabelDefault));
         timeEndLabel.setText(getString(R.string.TimeEndLabelDefault));
@@ -69,14 +69,17 @@ public class MainActivity extends Activity implements LocationListener {
         final String provider = locationManager.getBestProvider(CRITERIA, true);
         locationManager.requestLocationUpdates(provider, timeSeekBar.getProgress() + 1, 0, this);
 
+        positionTimeInterval = 1;
+        timeIntervalLabel.setText(getString(R.string. TimeSecIntervalLabelFormat, positionTimeInterval));
+
         timeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                int seconds = i + 1;
-                int minutes = seconds/60;
-                int leftSeconds = seconds - minutes*60;
-                if(seconds < 60) {
-                    timeIntervalLabel.setText(getString(R.string.TimeSecIntervalLabelFormat, seconds));
+                positionTimeInterval = i + 1;
+                int minutes = positionTimeInterval/60;
+                int leftSeconds = positionTimeInterval - minutes*60;
+                if(positionTimeInterval < 60) {
+                    timeIntervalLabel.setText(getString(R.string.TimeSecIntervalLabelFormat, positionTimeInterval));
                 }  else {
                     timeIntervalLabel.setText(getString(R.string.TimeMinIntervalLabelFormat, minutes, leftSeconds));
                 }
@@ -146,17 +149,15 @@ public class MainActivity extends Activity implements LocationListener {
         // do nothing
     }
 
-
-
     private void connectTcpClient() {
         try {
             socket = new Socket(HOST, PORT);
 
             if (socket.isConnected()) {
-                log.setText("Connected to HOST " + socket.getInetAddress().getHostName() + "on PORT " + socket.getPort());
+                logView.setText("Connected to HOST " + socket.getInetAddress().getHostName() + "on PORT " + socket.getPort());
             }
         } catch (UnknownHostException e) {
-            log.setText("Can't connect: " + e.getMessage());
+            logView.setText("Can't connect: " + e.getMessage());
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
@@ -167,7 +168,7 @@ public class MainActivity extends Activity implements LocationListener {
         try {
             socket.close();
             if (socket.isClosed()) {
-                log.setText("Disconnected");
+                logView.setText("Disconnected");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -185,8 +186,16 @@ public class MainActivity extends Activity implements LocationListener {
             if (type.equals(MessageType.Beat)) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 String inMsg = in.readLine() + System.getProperty("line.separator");
-                log.setText(inMsg);
+                logView.setText(inMsg);
                 Log.i("TcpClient", "received: " + inMsg);
+                if (!positionTimerStarted) {
+                    positionTimer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            //To change body of implemented methods use File | Settings | File Templates.
+                        }
+                    },0,positionTimeInterval*1000);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
