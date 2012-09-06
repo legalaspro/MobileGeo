@@ -30,7 +30,7 @@
     <TextView android:id="@+id/longitudeLabel"
               android:layout_width="fill_parent"
               android:layout_height="wrap_content"/>
-    <TextView android:id="@+id/statusLabel"
+    <TextView android:id="@+id/logLabel"
               android:layout_width="fill_parent"
               android:layout_height="wrap_content"/>
 

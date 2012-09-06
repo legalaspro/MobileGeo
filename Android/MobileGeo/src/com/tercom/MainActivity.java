@@ -1,13 +1,26 @@
 package com.tercom;
 
 import android.app.Activity;
+import android.content.Context;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements LocationListener {
+    private Location lastLocation;
+    private static final Criteria CRITERIA;
+
+    static {
+        CRITERIA = new Criteria();
+        CRITERIA.setAccuracy(Criteria.ACCURACY_FINE);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,7 +35,7 @@ public class MainActivity extends Activity {
         final TextView timeEndLabel = (TextView) findViewById(R.id.timeEndLabel);
         final TextView latitudeLabel = (TextView) findViewById(R.id.latitudeLabel);
         final TextView longitudeLabel = (TextView) findViewById(R.id.longitudeLabel);
-        final TextView statusLabel = (TextView) findViewById(R.id.statusLabel);
+        final TextView log = (TextView) findViewById(R.id.logLabel);
 
         timeIntervalLabel.setText(getString(R.string.TimeIntervalLabelFormat, timeSeekBar.getProgress() + 1));
         requestsCountLabel.setText(getString(R.string.RequestsCountLabelDefault));
@@ -30,7 +43,10 @@ public class MainActivity extends Activity {
         timeEndLabel.setText(getString(R.string.TimeEndLabelDefault));
         latitudeLabel.setText(getString(R.string.LatitudeLabelDefault));
         longitudeLabel.setText(getString(R.string.LongitudeLabelDefault));
-        statusLabel.setText(getString(R.string.StatusLabelDefault));
+
+        final LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        final String provider = locationManager.getBestProvider(CRITERIA, true);
+        locationManager.requestLocationUpdates(provider, timeSeekBar.getProgress() + 1, 0, this);
 
         timeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -67,5 +83,25 @@ public class MainActivity extends Activity {
                 endButton.setEnabled(false);
             }
         });
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        lastLocation = location;
+    }
+
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+        // do nothing
+    }
+
+    @Override
+    public void onProviderEnabled(String s) {
+        // do nothing
+    }
+
+    @Override
+    public void onProviderDisabled(String s) {
+        // do nothing
     }
 }
