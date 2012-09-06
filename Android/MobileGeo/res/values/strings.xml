@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MobileGeo</string>
+    <string name="TimeIntervalLabelFormat" formatted="true">Time: %d sec</string>
+    <string name="RequestsCountFormat" formatted="true">Requests count: %d</string>
+    <string name="TimeStartFormat" formatted="true">Time start: %1$tH:%1$tM:%1$tS.%1$tL</string>
+    <string name="TimeEndFormat" formatted="true">Time end: %1$tH:%1$tM:%1$tS.%1$tL</string>
+    <string name="LatitudeFormat" formatted="true">Latitude: </string>
+    <string name="LongitudeFormat" formatted="true">Longitude:</string>
+    <string name="StatusFormat" formatted="true">Status:</string>
+
+    <string name="RequestsCountLabelDefault" >Requests count: none</string>
+    <string name="TimeStartLabelDefault" >Time start: none</string>
+    <string name="TimeEndLabelDefault" >Time end: none</string>
+    <string name="LatitudeLabelDefault" >Latitude: none</string>
+    <string name="LongitudeLabelDefault" >Longitude: none</string>
+    <string name="StatusLabelDefault" >Status: none</string>
+
+    <string name="StartButtonText">Start</string>
+    <string name="EndButtonText">End</string>
 </resources>

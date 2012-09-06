@@ -2,12 +2,52 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
               android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
-        >
-    <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Hello World, MainActivity"
-            />
+              android:layout_height="fill_parent">
+    <TextView android:id="@+id/timeIntervalLabel"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"/>
+
+
+    <SeekBar android:layout_width="fill_parent"
+             android:layout_height="wrap_content"
+             android:max="299"
+             android:id="@+id/timeSeekBar"
+             android:layout_margin="10dp"/>
+
+
+    <TextView android:id="@+id/requestsCountLabel"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/timeStartLabel"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/timeEndLabel"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/latitudeLabel"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/longitudeLabel"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/statusLabel"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"/>
+
+    <LinearLayout android:orientation="horizontal"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content">
+        <Button android:id="@+id/startButton"
+                android:layout_width="0px"
+                android:layout_weight="1"
+                android:layout_height="fill_parent"
+                android:text="@string/StartButtonText"/>
+        <Button android:id="@+id/endButton"
+                android:layout_width="0px"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:text="@string/EndButtonText"
+                android:enabled="false"/>
+    </LinearLayout>
 </LinearLayout>
 
