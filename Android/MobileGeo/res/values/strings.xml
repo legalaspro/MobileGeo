@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MobileGeo</string>
-    <string name="TimeIntervalLabelFormat" formatted="true">Time: %d sec</string>
+    <string name="TimeSecIntervalLabelFormat" formatted="true">Time: %d sec</string>
+    <string name="TimeMinIntervalLabelFormat" formatted="true">Time: %1$d min %2$d sec</string>
     <string name="RequestsCountFormat" formatted="true">Requests count: %d</string>
     <string name="TimeStartFormat" formatted="true">Time start: %1$tH:%1$tM:%1$tS.%1$tL</string>
     <string name="TimeEndFormat" formatted="true">Time end: %1$tH:%1$tM:%1$tS.%1$tL</string>
@@ -16,4 +17,5 @@
 
     <string name="StartButtonText">Start</string>
     <string name="EndButtonText">End</string>
+
 </resources>

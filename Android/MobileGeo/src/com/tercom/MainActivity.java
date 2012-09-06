@@ -16,6 +16,8 @@ import android.widget.TextView;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends Activity implements LocationListener {
     private Location lastLocation;
@@ -26,8 +28,19 @@ public class MainActivity extends Activity implements LocationListener {
         CRITERIA.setAccuracy(Criteria.ACCURACY_FINE);
     }
 
-    private static final String HOST = ".....";
-    private static final int PORT = 00000;
+    private static final String HOST = "....";
+    private static final int PORT = 11111;
+    private static Socket socket;
+    private static Timer beatTimer = new Timer();
+    private static Timer positionTimer = new Timer();
+    private TextView log;
+
+
+    private static enum MessageType {
+        Beat,
+        Position,
+        Error
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -43,9 +56,9 @@ public class MainActivity extends Activity implements LocationListener {
         final TextView timeEndLabel = (TextView) findViewById(R.id.timeEndLabel);
         final TextView latitudeLabel = (TextView) findViewById(R.id.latitudeLabel);
         final TextView longitudeLabel = (TextView) findViewById(R.id.longitudeLabel);
-        final TextView log = (TextView) findViewById(R.id.logLabel);
+        log = (TextView) findViewById(R.id.logLabel);
 
-        timeIntervalLabel.setText(getString(R.string.TimeIntervalLabelFormat, timeSeekBar.getProgress() + 1));
+        timeIntervalLabel.setText(getString(R.string. TimeSecIntervalLabelFormat, timeSeekBar.getProgress() + 1));
         requestsCountLabel.setText(getString(R.string.RequestsCountLabelDefault));
         timeStartLabel.setText(getString(R.string.TimeStartLabelDefault));
         timeEndLabel.setText(getString(R.string.TimeEndLabelDefault));
@@ -59,7 +72,14 @@ public class MainActivity extends Activity implements LocationListener {
         timeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                timeIntervalLabel.setText(getString(R.string.TimeIntervalLabelFormat, i + 1));
+                int seconds = i + 1;
+                int minutes = seconds/60;
+                int leftSeconds = seconds - minutes*60;
+                if(seconds < 60) {
+                    timeIntervalLabel.setText(getString(R.string.TimeSecIntervalLabelFormat, seconds));
+                }  else {
+                    timeIntervalLabel.setText(getString(R.string.TimeMinIntervalLabelFormat, minutes, leftSeconds));
+                }
             }
 
             @Override
@@ -80,6 +100,15 @@ public class MainActivity extends Activity implements LocationListener {
                 timeEndLabel.setText(getString(R.string.TimeEndLabelDefault));
                 startButton.setEnabled(false);
                 endButton.setEnabled(true);
+                if (!socket.isConnected()) {
+                    connectTcpClient();
+                }
+                beatTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        //do nothing
+                    }
+                }, 0, 30 * 60 * 1000);
             }
         });
 
@@ -89,32 +118,12 @@ public class MainActivity extends Activity implements LocationListener {
                 timeEndLabel.setText(getString(R.string.TimeEndFormat, System.currentTimeMillis()));
                 startButton.setEnabled(true);
                 endButton.setEnabled(false);
+
+                disconnectTcpClient();
             }
         });
-        runTcpClient();
-    }
 
-
-    private void runTcpClient() {
-        try {
-            Socket s = new Socket(HOST, PORT);
-            BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-            //send output msg
-            String outMsg = "TCP connecting to " + PORT + System.getProperty("line.separator");
-            out.write(outMsg);
-            out.flush();
-            Log.i("TcpClient", "sent: " + outMsg);
-            //accept server response
-            String inMsg = in.readLine() + System.getProperty("line.separator");
-            Log.i("TcpClient", "received: " + inMsg);
-            //close connection
-            s.close();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        connectTcpClient();
     }
 
     @Override
@@ -135,5 +144,52 @@ public class MainActivity extends Activity implements LocationListener {
     @Override
     public void onProviderDisabled(String s) {
         // do nothing
+    }
+
+
+
+    private void connectTcpClient() {
+        try {
+            socket = new Socket(HOST, PORT);
+
+            if (socket.isConnected()) {
+                log.setText("Connected to HOST " + socket.getInetAddress().getHostName() + "on PORT " + socket.getPort());
+            }
+        } catch (UnknownHostException e) {
+            log.setText("Can't connect: " + e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void disconnectTcpClient() {
+        try {
+            socket.close();
+            if (socket.isClosed()) {
+                log.setText("Disconnected");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendMessage(String message, MessageType type) {
+        try {
+            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            //send output msg
+            out.write(message);
+            out.flush();
+            Log.i("TcpClient", "sent: " + message);
+            //accept server response
+            if (type.equals(MessageType.Beat)) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                String inMsg = in.readLine() + System.getProperty("line.separator");
+                log.setText(inMsg);
+                Log.i("TcpClient", "received: " + inMsg);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

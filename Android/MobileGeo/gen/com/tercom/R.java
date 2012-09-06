@@ -10,10 +10,36 @@ package com.tercom;
 public final class R {
     public static final class attr {
     }
+    public static final class id {
+        public static final int endButton=0x7f040009;
+        public static final int latitudeLabel=0x7f040005;
+        public static final int logLabel=0x7f040007;
+        public static final int longitudeLabel=0x7f040006;
+        public static final int requestsCountLabel=0x7f040002;
+        public static final int startButton=0x7f040008;
+        public static final int timeEndLabel=0x7f040004;
+        public static final int timeIntervalLabel=0x7f040000;
+        public static final int timeSeekBar=0x7f040001;
+        public static final int timeStartLabel=0x7f040003;
+    }
     public static final class layout {
         public static final int main=0x7f020000;
     }
     public static final class string {
+        public static final int EndButtonText=0x7f03000e;
+        public static final int LatitudeFormat=0x7f030006;
+        public static final int LatitudeLabelDefault=0x7f03000b;
+        public static final int LongitudeFormat=0x7f030007;
+        public static final int LongitudeLabelDefault=0x7f03000c;
+        public static final int RequestsCountFormat=0x7f030003;
+        public static final int RequestsCountLabelDefault=0x7f030008;
+        public static final int StartButtonText=0x7f03000d;
+        public static final int TimeEndFormat=0x7f030005;
+        public static final int TimeEndLabelDefault=0x7f03000a;
+        public static final int TimeMinIntervalLabelFormat=0x7f030002;
+        public static final int TimeSecIntervalLabelFormat=0x7f030001;
+        public static final int TimeStartFormat=0x7f030004;
+        public static final int TimeStartLabelDefault=0x7f030009;
         public static final int app_name=0x7f030000;
     }
 }
