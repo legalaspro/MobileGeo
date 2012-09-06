@@ -13,7 +13,10 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-<<<<<<< HEAD
+import java.io.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
+
 public class MainActivity extends Activity implements LocationListener {
     private Location lastLocation;
     private static final Criteria CRITERIA;
@@ -22,16 +25,9 @@ public class MainActivity extends Activity implements LocationListener {
         CRITERIA = new Criteria();
         CRITERIA.setAccuracy(Criteria.ACCURACY_FINE);
     }
-=======
-import java.io.*;
-import java.net.Socket;
-import java.net.UnknownHostException;
-
-public class MainActivity extends Activity {
 
     private static final String HOST = ".....";
     private static final int PORT = 00000;
->>>>>>> Added simple Tcp request.
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
